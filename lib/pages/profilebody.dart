@@ -12,8 +12,8 @@ class Profilebody extends StatefulWidget {
 
 class _ProfilebodyState extends State<Profilebody> {
  
-  String username = "Loading...";
-  String email = "Loading...";
+  String username = "Null";
+  String email = "Null";
 
   @override
   void initState() {

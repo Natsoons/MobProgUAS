@@ -2,24 +2,54 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controller/edit_profile_controller.dart'; 
 
-class ProfileEdit extends StatelessWidget {
+class ProfileEdit extends StatefulWidget {
   const ProfileEdit({super.key});
 
   @override
+  State<ProfileEdit> createState() => _ProfileEditState();
+}
+
+class _ProfileEditState extends State<ProfileEdit> {
+  late TextEditingController emailController;
+  late TextEditingController usernameController;
+  late TextEditingController imageUrlController;
+  late EditProfileController controller;
+
+  @override
+  void initState() {
+    super.initState();
+    controller = Get.put(EditProfileController());
+    emailController = TextEditingController();
+    usernameController = TextEditingController();
+    imageUrlController = TextEditingController();
+    
+  
+    _preFillData();
+  }
+
+  void _preFillData() {
+    if (controller.email.value.isNotEmpty) {
+      emailController.text = controller.email.value;
+    }
+    if (controller.username.value.isNotEmpty) {
+      usernameController.text = controller.username.value;
+    }
+    if (controller.imageUrl.value.isNotEmpty) {
+      imageUrlController.text = controller.imageUrl.value;
+    }
+  }
+
+  @override
+  void dispose() {
+    emailController.dispose();
+    usernameController.dispose();
+    imageUrlController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final EditProfileController controller = Get.put(EditProfileController());
-    final emailController = TextEditingController();
-    final usernameController = TextEditingController();
-
     return Obx(() {
-      
-      if (emailController.text.isEmpty && controller.email.value.isNotEmpty) {
-        emailController.text = controller.email.value;
-      }
-      if (usernameController.text.isEmpty && controller.username.value.isNotEmpty) {
-        usernameController.text = controller.username.value;
-      }
-
       return Scaffold(
         appBar: AppBar(
           title: const Text("Edit Profile"),
@@ -40,6 +70,52 @@ class ProfileEdit extends StatelessWidget {
                 child: SingleChildScrollView(
                   child: Column(
                     children: [
+                     
+                      Center(
+                        child: Column(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                
+                              },
+                              child: Obx(() => CircleAvatar(
+                                    radius: 60.0,
+                                    backgroundColor: Colors.grey.shade300,
+                                    backgroundImage: controller.imageUrl.value.isNotEmpty
+                                        ? NetworkImage(controller.imageUrl.value) as ImageProvider
+                                        : null,
+                                    child: controller.imageUrl.value.isEmpty
+                                        ? const Icon(Icons.person, size: 60, color: Colors.white)
+                                        : null,
+                                  )),
+                            ),
+                            const SizedBox(height: 8.0),
+                            SizedBox(
+                              width: 300,
+                              child: TextField(
+                                controller: imageUrlController,
+                                decoration: InputDecoration(
+                                  hintText: 'Image URL (http...)',
+                                  prefixIcon: const Icon(Icons.image),
+                                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8.0)),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8.0),
+                            SizedBox(
+                              width: 150,
+                              child: ElevatedButton(
+                                onPressed: () {
+
+                                  controller.imageUrl.value = imageUrlController.text.trim();
+                                },
+                                child: const Text('Update Photo'),
+                              ),
+                            ),
+                            const SizedBox(height: 20.0),
+                          ],
+                        ),
+                      ),
                     
                       TextField(
                         controller: emailController,

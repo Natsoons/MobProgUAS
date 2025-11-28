@@ -8,6 +8,7 @@ class EditProfileController extends GetxController {
   var isLoading = false.obs;
   var userID = 0.obs;
   var password = ''.obs; 
+  var imageUrl = ''.obs;
   @override
   void onInit() {
     super.onInit();

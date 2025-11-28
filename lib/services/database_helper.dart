@@ -74,4 +74,15 @@ class DatabaseHelper {
       whereArgs: [user.id],
     );
   }
+
+  
+  Future<int> updatePassword(int id, String newPassword) async {
+    Database db = await database;
+    return await db.update(
+      'users',
+      {'password': newPassword},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
 }
