@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:mobprog_uas/pages/home.dart';
+import 'package:mobprog_uas/pages/detail_page.dart';
+import 'package:mobprog_uas/pages/signup.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: Home(),
+      home: DetailPage(),
     );
   }
 }
