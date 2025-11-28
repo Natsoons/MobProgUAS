@@ -3,6 +3,7 @@ import 'package:mobprog_uas/pages/detail_page.dart';
 import 'package:mobprog_uas/pages/signup.dart';
 import 'package:mobprog_uas/pages/home.dart';
 import 'package:mobprog_uas/pages/login.dart' as login_page;
+import 'package:mobprog_uas/pages/wishlist.dart';
 
 void main() {
   runApp(const MyApp());
@@ -20,7 +21,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: login_page.Login(),
+      home: Wishlist(),
     );
   }
 }
