@@ -2,31 +2,28 @@ import 'package:flutter/material.dart';
 import 'profilebody.dart';
 
 
-
 class  Profile extends StatelessWidget {
   const Profile({super.key});
 
  
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    var scaffold3 = Scaffold(
       appBar: AppBar(
-        title: const Text ('profil',
-        style: TextStyle(
-          fontSize: 26,
-          fontWeight: FontWeight.bold,
-          color: Colors.lightBlue,
-          fontFamily: 'Poppins'
-        ),
+        title: const Text (
+          'profil',
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+            color: Colors.lightBlue,
+            fontFamily: 'Poppins'
+          ),
         ),
         leading: IconButton(
-          onPressed: () {
-             Navigator.pop(context); 
-          }, 
-          icon: const Icon(Icons.arrow_back), 
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
         ),
-  
-
+        // removed top-right edit button as requested
         centerTitle: false,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,
@@ -37,7 +34,9 @@ class  Profile extends StatelessWidget {
 
       
     );
-  
+    var scaffold2 = scaffold3;
+    var scaffold = scaffold2;
+    return scaffold;
   }
 }
 
