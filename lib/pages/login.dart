@@ -11,8 +11,8 @@ class Login extends StatefulWidget {
 
 class _LoginState extends State<Login> {
 
-  TextEditingController useremailcontroller = new TextEditingController();
-  TextEditingController passwordcontroller = new TextEditingController();
+  TextEditingController useremailcontroller = TextEditingController();
+  TextEditingController passwordcontroller = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -112,6 +112,7 @@ class _LoginState extends State<Login> {
                       padding: EdgeInsets.symmetric(vertical: 15.0),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(30),
+                        color: Colors.blue.shade800,
                       ),
                       child: Center(
                         child: Text(
