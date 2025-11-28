@@ -45,15 +45,25 @@ class EditProfileController extends GetxController {
         Get.snackbar('Error', 'Email dan Nama tidak boleh kosong!');
         return false;
       }
+   
       UserModel updatedUser = UserModel(
-        id: userID.value,
+        id: userID.value == 0 ? null : userID.value,
         username: newUsername,
         email: newEmail,
         password: password.value,
       );
 
-   
-      int result = await DatabaseHelper().updateUser(updatedUser);
+      int result = 0;
+      if (userID.value == 0) {
+        
+        result = await DatabaseHelper().registerUser(updatedUser);
+        if (result > 0) {
+          
+          userID.value = result;
+        }
+      } else {
+        result = await DatabaseHelper().updateUser(updatedUser);
+      }
       
       if (result > 0) {
         email.value = newEmail;
