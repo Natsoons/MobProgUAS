@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mobprog_uas/pages/detail_page.dart';
 import 'package:mobprog_uas/pages/signup.dart';
 
 void main() {
@@ -17,8 +18,7 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
-      home: SignUp(),
+      home: DetailPage(),
     );
   }
 }
-

@@ -17,11 +17,100 @@ class DetailPage extends StatelessWidget {
   }
 }
 
-class HotelDetailScreen extends StatelessWidget {
+class HotelDetailScreen extends StatefulWidget {
   const HotelDetailScreen({super.key});
 
   @override
+  State<HotelDetailScreen> createState() => _HotelDetailScreenState();
+}
+
+class _HotelDetailScreenState extends State<HotelDetailScreen> {
+  DateTime _checkInDate = DateTime.now();
+  DateTime _checkOutDate = DateTime.now().add(const Duration(days: 4));
+  int _guestCount = 1;
+
+  String _formatDate(DateTime date) {
+    const List<String> months = [
+      'Jan',
+      'Feb',
+      'Mar',
+      'Apr',
+      'May',
+      'Jun',
+      'Jul',
+      'Aug',
+      'Sep',
+      'Oct',
+      'Nov',
+      'Dec',
+    ];
+    return "${date.day.toString().padLeft(2, '0')}, ${months[date.month - 1]} ${date.year}";
+  }
+
+  Future<void> _selectDate(BuildContext context, bool isCheckIn) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: isCheckIn ? _checkInDate : _checkOutDate,
+      firstDate: isCheckIn
+          ? DateTime.now()
+          : _checkInDate.add(const Duration(days: 1)),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      setState(() {
+        if (isCheckIn) {
+          _checkInDate = picked;
+          if (_checkOutDate.isBefore(_checkInDate)) {
+            _checkOutDate = _checkInDate.add(const Duration(days: 1));
+          }
+        } else {
+          _checkOutDate = picked;
+        }
+      });
+    }
+  }
+
+  void _updateGuests() {
+    TextEditingController guestController = TextEditingController(
+      text: _guestCount.toString(),
+    );
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Enter Guests"),
+          content: TextField(
+            controller: guestController,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(
+              hintText: "Number of guests",
+              border: OutlineInputBorder(),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                int? newCount = int.tryParse(guestController.text);
+                if (newCount != null && newCount > 0) {
+                  setState(() {
+                    _guestCount = newCount;
+                  });
+                }
+                Navigator.of(context).pop();
+              },
+              child: const Text("Done"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    int nights = _checkOutDate.difference(_checkInDate).inDays;
+    int totalPrice = nights * 25;
+
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -75,7 +164,7 @@ class HotelDetailScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   const Text(
-                    '\$20',
+                    '\$25',
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -136,9 +225,9 @@ class HotelDetailScreen extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          '\$100 for 4 nights',
-                          style: TextStyle(
+                        Text(
+                          '\$$totalPrice for $nights nights',
+                          style: const TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: Colors.black,
@@ -154,29 +243,32 @@ class HotelDetailScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF2196F3),
-                                shape: BoxShape.circle,
+                        GestureDetector(
+                          onTap: () => _selectDate(context, true),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF2196F3),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.calendar_today,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.calendar_today,
-                                color: Colors.white,
-                                size: 18,
+                              const SizedBox(width: 12),
+                              Text(
+                                _formatDate(_checkInDate),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            const Text(
-                              '02, Apr 2025',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 10),
                         const Divider(thickness: 1, color: Color(0xFFEEEEEE)),
@@ -190,29 +282,32 @@ class HotelDetailScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
-                                color: Color(0xFF2196F3),
-                                shape: BoxShape.circle,
+                        GestureDetector(
+                          onTap: () => _selectDate(context, false),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: const BoxDecoration(
+                                  color: Color(0xFF2196F3),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(
+                                  Icons.calendar_today,
+                                  color: Colors.white,
+                                  size: 18,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.calendar_today,
-                                color: Colors.white,
-                                size: 18,
+                              const SizedBox(width: 12),
+                              Text(
+                                _formatDate(_checkOutDate),
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
-                            ),
-                            const SizedBox(width: 12),
-                            const Text(
-                              '05, Apr 2025',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                         const SizedBox(height: 20),
                         const Text(
@@ -224,21 +319,46 @@ class HotelDetailScreen extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        Container(
+                        GestureDetector(
+                          onTap: _updateGuests,
+                          child: Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFE8EAF6),
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Text(
+                              '$_guestCount',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        SizedBox(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 20,
-                            vertical: 16,
-                          ),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFFE8EAF6),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Text(
-                            '1',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
+                          child: ElevatedButton(
+                            onPressed: () {},
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                              padding: const EdgeInsets.symmetric(vertical: 16),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: const Text(
+                              'Booking Now',
+                              style: TextStyle(
+                                color: Colors.white,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
                           ),
                         ),

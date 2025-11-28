@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import 'profilebody.dart';
 
 
-
-
 class  Profile extends StatelessWidget {
   const Profile({super.key});
 
@@ -12,7 +10,14 @@ class  Profile extends StatelessWidget {
   Widget build(BuildContext context) {
     var scaffold3 = Scaffold(
       appBar: AppBar(
-        title: const Text ('profil'),
+        title: const Text ('profil',
+        style: TextStyle(
+          fontSize: 26,
+          fontWeight: FontWeight.bold,
+          color: Colors.lightBlue,
+          fontFamily: 'Poppins'
+        ),
+        ),
         leading: const Icon (Icons.arrow_back),
         actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.edit)),
         ],
