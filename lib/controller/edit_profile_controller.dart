@@ -6,7 +6,8 @@ class EditProfileController extends GetxController {
   var email = ''.obs;
   var username = ''.obs;
   var isLoading = false.obs;
-  var userID = 0.obs; 
+  var userID = 0.obs;
+  var password = ''.obs; 
   @override
   void onInit() {
     super.onInit();
@@ -25,6 +26,7 @@ class EditProfileController extends GetxController {
         userID.value = lastUser['id'];
         email.value = lastUser['email'];
         username.value = lastUser['username'];
+        password.value = lastUser['password'];
       }
     } catch (e) {
       print('Error loading user data: $e');
@@ -43,12 +45,11 @@ class EditProfileController extends GetxController {
         Get.snackbar('Error', 'Email dan Nama tidak boleh kosong!');
         return false;
       }
-
       UserModel updatedUser = UserModel(
         id: userID.value,
         username: newUsername,
         email: newEmail,
-        password: '', 
+        password: password.value,
       );
 
    

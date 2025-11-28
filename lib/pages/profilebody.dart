@@ -32,11 +32,13 @@ class _ProfilebodyState extends State<Profilebody> {
         username = allUsers.last['username'];
         email = allUsers.last['email'];
       });
+      print('DEBUG: Username: $username, Email: $email');
     } else {
       setState(() {
         username = "Belum ada user";
         email = "-";
       });
+      print('DEBUG: Tidak ada user di database');
     }
   }
 
@@ -54,10 +56,9 @@ class _ProfilebodyState extends State<Profilebody> {
                 height: 300,
                 width: double.infinity,
                 decoration: const BoxDecoration(
-                  color: Colors.blue,
-                  borderRadius: BorderRadius.only(
-                    bottomLeft: Radius.circular(30),
-                    bottomRight: Radius.circular(30),
+                   image: DecorationImage(
+                    image: AssetImage('assets/beach.jpg'), 
+                    fit: BoxFit.cover,
                   ),
                 ),
               ),

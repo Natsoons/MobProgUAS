@@ -26,6 +26,12 @@ class ProfileEdit extends StatelessWidget {
           backgroundColor: Colors.white,
           foregroundColor: Colors.black,
           elevation: 0,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              Navigator.pop(context);
+            },
+          ),
         ),
         body: controller.isLoading.value
             ? const Center(child: CircularProgressIndicator())
