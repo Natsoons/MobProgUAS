@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'payment.dart';
 
 class HotelBookingPage extends StatefulWidget {
-  const HotelBookingPage({super.key});
+  final Map<String, dynamic>? hotel;
+  const HotelBookingPage({super.key, this.hotel});
 
   @override
   State<HotelBookingPage> createState() => _HotelBookingPageState();
@@ -18,16 +19,25 @@ class _HotelBookingPageState extends State<HotelBookingPage> {
   int _guestCount = 1;
 
   Future<void> _selectDate(BuildContext context, bool isCheckIn) async {
+    DateTime firstDate = DateTime.now();
+    if (!isCheckIn && _checkInDate != null) {
+      firstDate = _checkInDate!;
+    }
+
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime.now(),
-      firstDate: DateTime.now(),
+      initialDate: firstDate,
+      firstDate: firstDate,
       lastDate: DateTime(2030),
     );
+
     if (picked != null) {
       setState(() {
         if (isCheckIn) {
           _checkInDate = picked;
+          if (_checkOutDate != null && _checkOutDate!.isBefore(_checkInDate!)) {
+            _checkOutDate = null; 
+          }
         } else {
           _checkOutDate = picked;
         }
@@ -123,9 +133,42 @@ class _HotelBookingPageState extends State<HotelBookingPage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   onPressed: () {
+                    if (_checkInDate == null || _checkOutDate == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Please select check-in and check-out dates'),
+                        backgroundColor: Colors.red,
+                      ));
+                      return;
+                    }
+                    if (_nameController.text.trim().isEmpty || _emailController.text.trim().isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Please enter your name and email'),
+                        backgroundColor: Colors.red,
+                      ));
+                      return;
+                    }
+                    
+                    DateTime ci = _checkInDate!;
+                    DateTime co = _checkOutDate!;
+                    if (co.isBefore(ci) || co.isAtSameMomentAs(ci)) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Check-out date must be after Check-in date!'),
+                        backgroundColor: Colors.red,
+                      ));
+                      return;
+                    }
+
+                    int nights = co.difference(ci).inDays;
+                    
                     Navigator.push(
                       context,
-                      MaterialPageRoute(builder: (context) => const PaymentPage()),
+                      MaterialPageRoute(builder: (context) => PaymentPage(
+                        hotel: widget.hotel,
+                        nights: nights,
+                        guests: _guestCount,
+                        checkin: '${ci.year}-${ci.month}-${ci.day}',
+                        checkout: '${co.year}-${co.month}-${co.day}',
+                      )),
                     );
                   },
                   child: const Text("Continue to Payment", style: TextStyle(color: Colors.white, fontSize: 18)),
