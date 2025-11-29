@@ -2,33 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:mobprog_uas/pages/booking.dart';
 import 'package:mobprog_uas/pages/review.dart';
 
-void main() {
-  runApp(const DetailPage());
-}
-
 class DetailPage extends StatelessWidget {
-  const DetailPage({super.key});
+  final Map<String, dynamic>? hotel;
+  const DetailPage({super.key, this.hotel});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(useMaterial3: true),
-      home: const HotelDetailScreen(),
-    );
-  }
-}
+    final h = hotel ?? {
+      'name': 'Hotel Default',
+      'price': 0,
+      'currency': 'USD',
+      'city': 'Unknown',
+      'image': null,
+      'rating': 0.0,
+    };
 
-class HotelDetailScreen extends StatefulWidget {
-  const HotelDetailScreen({super.key});
-
-  @override
-  State<HotelDetailScreen> createState() => _HotelDetailScreenState();
-}
-
-class _HotelDetailScreenState extends State<HotelDetailScreen> {
-  @override
-  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       body: SingleChildScrollView(
@@ -37,25 +25,20 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
           children: [
             Stack(
               children: [
-                Container(
+                SizedBox(
                   height: 300,
                   width: double.infinity,
-                  decoration: const BoxDecoration(
-                    image: DecorationImage(
-                      image: NetworkImage(
-                        'https://images.unsplash.com/photo-1566073771259-6a8506099945?ixlib=rb-4.0.3&auto=format&fit=crop&w=1000&q=80',
-                      ),
-                      fit: BoxFit.cover,
-                    ),
-                  ),
+                  child: h['image'] != null && h['image'].toString().startsWith('http')
+                      ? Image.network(h['image'], fit: BoxFit.cover, width: double.infinity, height: 300)
+                      : (h['image'] != null
+                          ? Image.asset(h['image'], fit: BoxFit.cover, width: double.infinity, height: 300)
+                          : Container(color: Colors.grey.shade200)),
                 ),
                 Positioned(
                   top: 50,
                   left: 20,
                   child: GestureDetector(
-                    onTap: () {
-                      Navigator.pop(context);
-                    },
+                    onTap: () => Navigator.pop(context),
                     child: Container(
                       padding: const EdgeInsets.all(8),
                       decoration: const BoxDecoration(
@@ -77,18 +60,18 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Hotel Beach',
-                    style: TextStyle(
+                  Text(
+                    h['name'] ?? 'Hotel',
+                    style: const TextStyle(
                       fontSize: 26,
                       fontWeight: FontWeight.bold,
                       color: Colors.black,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    '\$25',
-                    style: TextStyle(
+                  Text(
+                    '${h['currency'] ?? ''}${h['price'] ?? ''}',
+                    style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
                       color: Colors.black87,
@@ -123,7 +106,7 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                   ),
                   const SizedBox(height: 10),
                   const Text(
-                    "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book.",
+                    "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
                     style: TextStyle(
                       fontSize: 14,
                       color: Colors.black87,
@@ -133,12 +116,12 @@ class _HotelDetailScreenState extends State<HotelDetailScreen> {
                   const SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
-                    child: ElevatedButton(
+                      child: ElevatedButton(
                       onPressed: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const HotelBookingPage(),
+                            builder: (context) => HotelBookingPage(hotel: h),
                           ),
                         );
                       },
