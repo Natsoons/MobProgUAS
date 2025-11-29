@@ -1,3 +1,4 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mobprog_uas/providers/auth_provider.dart';
@@ -66,20 +67,12 @@ class Profilebody extends StatelessWidget {
                     return Text(
                       email,
                       style: const TextStyle(
+                        fontSize: 16,
                         color: Colors.white70,
                         fontWeight: FontWeight.w100,
                       ),
                     );
                   }),
-
-                
-                  const Text(
-                    '06373274508 | membership:aktif',
-                    style: TextStyle(
-                      color: Colors.white70, 
-                      fontWeight: FontWeight.w100,
-                    ),
-                  ),
                 ],
               ),
             ],
