@@ -1,7 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:mobprog_uas/services/db_helper.dart';
+import 'package:provider/provider.dart';
+import 'package:mobprog_uas/providers/auth_provider.dart';
 
 class PaymentPage extends StatefulWidget {
-  const PaymentPage({super.key});
+  final Map<String, dynamic>? hotel;
+  final int nights;
+  final int guests;
+  final String? checkin;
+  final String? checkout;
+  
+  const PaymentPage({super.key, this.hotel, this.nights = 0, this.guests = 1, this.checkin, this.checkout});
 
   @override
   State<PaymentPage> createState() => _PaymentPageState();
@@ -9,9 +18,13 @@ class PaymentPage extends StatefulWidget {
 
 class _PaymentPageState extends State<PaymentPage> {
   int _selectedMethod = 0;
+  final DBHelper _db = DBHelper();
 
   @override
   Widget build(BuildContext context) {
+    final double total = _computeTotal();
+    final double pricePerNight = _getPricePerNight();
+
     return Scaffold(
       appBar: AppBar(
         title: const Text("Payment", style: TextStyle(fontWeight: FontWeight.bold)),
@@ -31,17 +44,22 @@ class _PaymentPageState extends State<PaymentPage> {
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.blue.shade200),
                 ),
-                child: const Row(
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text("Grand Luxury Hotel", style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
-                        Text("1 Night, 2 Guests", style: TextStyle(color: Colors.grey)),
+                        Text(widget.hotel?['name'] ?? 'Hotel', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                        const SizedBox(height: 5),
+                        Text('${widget.nights} Night(s), ${widget.guests} Guests', style: const TextStyle(color: Colors.grey)),
+                        Text(
+                          '${_formatPrice(pricePerNight)} x ${widget.nights} nights', 
+                          style: TextStyle(color: Colors.grey.shade500, fontSize: 12)
+                        ),
                       ],
                     ),
-                    Text("\$120.00", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue)),
+                    Text(_formatPrice(total), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.blue)),
                   ],
                 ),
               ),
@@ -111,7 +129,7 @@ class _PaymentPageState extends State<PaymentPage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                   ),
                   onPressed: () {
-                    _showSuccessDialog();
+                    _showSuccessDialog(total);
                   },
                   child: const Text("Pay Now", style: TextStyle(color: Colors.white, fontSize: 18)),
                 ),
@@ -147,7 +165,7 @@ class _PaymentPageState extends State<PaymentPage> {
     );
   }
 
-  void _showSuccessDialog() {
+  void _showSuccessDialog(double totalAmount) {
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -162,9 +180,24 @@ class _PaymentPageState extends State<PaymentPage> {
           content: const Text("Your booking has been confirmed.", textAlign: TextAlign.center),
           actions: [
             TextButton(
-              onPressed: () {
-                Navigator.pop(context); // Close dialog
-                Navigator.pop(context); // Go back to Booking page
+              onPressed: () async {
+                final auth = Provider.of<AuthProvider>(context, listen: false);
+                final email = auth.user?.email ?? '';
+                final booking = {
+                  'email': email,
+                  'hotel_name': widget.hotel?['name'] ?? '',
+                  'hotel_id': widget.hotel?['id']?.toString() ?? '',
+                  'checkin': widget.checkin ?? '',
+                  'checkout': widget.checkout ?? '',
+                  'nights': widget.nights,
+                  'guests': widget.guests,
+                  'total': totalAmount,
+                };
+                await _db.insertBooking(booking);
+                if (!mounted) return;
+                Navigator.pop(context); 
+                if (!mounted) return;
+                Navigator.pushReplacementNamed(context, '/bookings');
               },
               child: const Text("OK"),
             ),
@@ -172,5 +205,21 @@ class _PaymentPageState extends State<PaymentPage> {
         );
       },
     );
+  }
+
+  double _getPricePerNight() {
+    var rawPrice = widget.hotel?['price'];
+    if (rawPrice == null) return 0.0;
+    String cleanString = rawPrice.toString().replaceAll(RegExp(r'[^0-9.]'), '');    
+    return double.tryParse(cleanString) ?? 0.0;
+  }
+
+  double _computeTotal() {
+    return _getPricePerNight() * widget.nights;
+  }
+
+  String _formatPrice(double v) {
+    final symbol = widget.hotel?['currency'] ?? '\$';
+    return '$symbol${v.toStringAsFixed(2)}';
   }
 }
