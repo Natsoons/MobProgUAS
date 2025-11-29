@@ -10,18 +10,20 @@ class  Profile extends StatelessWidget {
   Widget build(BuildContext context) {
     var scaffold3 = Scaffold(
       appBar: AppBar(
-        title: const Text ('profil',
-        style: TextStyle(
-          fontSize: 26,
-          fontWeight: FontWeight.bold,
-          color: Colors.lightBlue,
-          fontFamily: 'Poppins'
+        title: const Text (
+          'profil',
+          style: TextStyle(
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+            color: Colors.lightBlue,
+            fontFamily: 'Poppins'
+          ),
         ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
         ),
-        leading: const Icon (Icons.arrow_back),
-        actions: [IconButton(onPressed: () {}, icon: const Icon(Icons.edit)),
-        ],
-
+        // removed top-right edit button as requested
         centerTitle: false,
         backgroundColor: Colors.white,
         foregroundColor: Colors.black,

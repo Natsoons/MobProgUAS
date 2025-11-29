@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:mobprog_uas/providers/auth_provider.dart';
 
 class Profilebody extends StatelessWidget {
   const Profilebody({
@@ -37,7 +39,7 @@ class Profilebody extends StatelessWidget {
                       shape: BoxShape.circle,
                       color: Colors.white,
                     ),
-                    child: const CircleAvatar(
+                    child: CircleAvatar(
                       backgroundImage: AssetImage('assets/ningning.jpg'),
                       radius: 60.0,
                     ),
@@ -45,25 +47,30 @@ class Profilebody extends StatelessWidget {
 
                   const SizedBox(height: 15.0),
 
-                  const Text(
-                    'Filipus Susanto',
-                    style: TextStyle(
-                      fontSize: 26,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white, 
-                    ),
-                  ),
+                  Consumer<AuthProvider>(builder: (context, auth, _) {
+                    final name = auth.user?.name ?? 'Nama Pengguna';
+                    return Text(
+                      name,
+                      style: const TextStyle(
+                        fontSize: 26,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    );
+                  }),
 
                   const SizedBox(height: 5.0),
 
-               
-                  const Text(
-                    'FilipusViper@gmail.com',
-                    style: TextStyle(
-                      color: Colors.white70, 
-                      fontWeight: FontWeight.w100,
-                    ),
-                  ),
+                  Consumer<AuthProvider>(builder: (context, auth, _) {
+                    final email = auth.user?.email ?? 'email@domain.com';
+                    return Text(
+                      email,
+                      style: const TextStyle(
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w100,
+                      ),
+                    );
+                  }),
 
                 
                   const Text(
@@ -87,6 +94,7 @@ class Profilebody extends StatelessWidget {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
+                  Navigator.pushNamed(context, '/edit_profile');
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white, 
@@ -118,7 +126,9 @@ class Profilebody extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushNamed(context, '/bookings');
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.black,
@@ -150,7 +160,9 @@ class Profilebody extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Navigator.pushNamed(context, '/forgot');
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.black,
@@ -182,7 +194,10 @@ class Profilebody extends StatelessWidget {
             child: SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {},
+                onPressed: () {
+                  Provider.of<AuthProvider>(context, listen: false).logout();
+                  Navigator.pushReplacementNamed(context, '/home');
+                },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.white,
                   foregroundColor: Colors.red, 
