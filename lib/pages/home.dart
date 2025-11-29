@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:mobprog_uas/data/hotels.dart';
+import 'package:mobprog_uas/providers/auth_provider.dart';
 
 class AppWidget {
   static TextStyle headlinestyle(double size) {
@@ -31,7 +34,6 @@ class AppWidget {
 
 class Login extends StatelessWidget {
   const Login({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -55,8 +57,12 @@ class _HomeState extends State<Home> {
     {"title": "Candi Borobudur", "location": "Magelang", "image": "images/temple1.jpg"},
   ];
 
+  final TextEditingController _searchController = TextEditingController();
+  List<Map<String, dynamic>> filtered = hotels;
+
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context);
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -116,10 +122,11 @@ class _HomeState extends State<Home> {
                           ),
                           GestureDetector(
                             onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(builder: (context) => const Login()),
-                              );
+                              if (auth.isLoggedIn) {
+                                Navigator.pushNamed(context, '/profile');
+                              } else {
+                                Navigator.pushNamed(context, '/login');
+                              }
                             },
                             child: Container(
                               padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
@@ -128,7 +135,7 @@ class _HomeState extends State<Home> {
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: Text(
-                                "LOGIN",
+                                auth.isLoggedIn ? "Profile Akun" : "LOGIN",
                                 style: AppWidget.blueTextStyle(16).copyWith(fontWeight: FontWeight.bold),
                               ),
                             ),
@@ -148,6 +155,17 @@ class _HomeState extends State<Home> {
                           borderRadius: BorderRadius.circular(30),
                         ),
                         child: TextField(
+                          controller: _searchController,
+                          onChanged: (v) {
+                            setState(() {
+                              final q = v.toLowerCase();
+                              filtered = hotels.where((h) {
+                                final name = (h['name'] ?? '').toString().toLowerCase();
+                                final city = (h['city'] ?? '').toString().toLowerCase();
+                                return name.contains(q) || city.contains(q);
+                              }).toList();
+                            });
+                          },
                           decoration: InputDecoration(
                             border: InputBorder.none,
                             prefixIcon: Icon(
@@ -172,41 +190,36 @@ class _HomeState extends State<Home> {
                 style: AppWidget.headlinestyle(22),
               ),
             ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () => Navigator.pushNamed(context, '/hotels'),
+                child: const Text('Lihat Semua'),
+              ),
+            ),
             const SizedBox(height: 20),
             SizedBox(
               height: 320,
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.only(left: 20),
-                children: [
-                  _buildHotelCard("Hotel Elite", "\$20", "Jakarta", "images/hotel1.png"),
-                  _buildHotelCard("Resort Mewah", "\$50", "Bali", "images/hotel2.png"),
-                  _buildHotelCard("Hostel Murah", "\$10", "Bandung", "images/hostel1.png"),
-                ],
+                children: hotels.take(10).map((h) => _buildHotelCardFromMap(h)).toList(),
               ),
             ),
             Padding(
               padding: const EdgeInsets.only(left: 20.0, top: 20),
               child: Text(
-                "Jelajahi Tempat Baru",
+                "List Hotel",
                 style: AppWidget.headlinestyle(22),
               ),
             ),
             const SizedBox(height: 20),
             SizedBox(
               height: 180,
-              child: ListView.builder(
+              child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.only(left: 20),
-                itemCount: discoverPlaces.length,
-                itemBuilder: (context, index) {
-                  final place = discoverPlaces[index];
-                  return _buildDiscoverCard(
-                    place["title"]!,
-                    place["location"]!,
-                    place["image"]!,
-                  );
-                },
+                children: (filtered.take(10).toList()).map((h) => _buildHotelCardFromMap(h)).toList(),
               ),
             ),
             const SizedBox(height: 30),
@@ -216,140 +229,104 @@ class _HomeState extends State<Home> {
     );
   }
 
-  Widget _buildHotelCard(String title, String price, String location, String imagePath) {
-    return Container(
-      margin: const EdgeInsets.only(right: 20, bottom: 10),
-      width: 250,
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: const Offset(0, 3),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-            child: Image.asset(
-              imagePath,
-              width: 250,
-              height: 180,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                width: 250,
-                height: 180,
-                color: Colors.grey.shade300,
-                child: Center(
-                  child: Text(
-                    "Hotel Image",
-                    style: AppWidget.headlinestyle(16),
+  Widget _buildHotelCardFromMap(Map<String, dynamic> h) {
+    final title = h['name'] ?? '';
+    final price = '${h['currency'] ?? ''}${h['price'] ?? ''}';
+    final location = h['city'] ?? '';
+    final imagePath = h['image'] ?? '';
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, '/detail', arguments: h);
+      },
+      child: Container(
+        margin: const EdgeInsets.only(right: 20, bottom: 10),
+        width: 250,
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.3),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: const Offset(0, 3),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            ClipRRect(
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              child: imagePath != null && imagePath.toString().startsWith('http')
+                  ? Image.network(
+                      imagePath,
+                      width: 250,
+                      height: 180,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: 250,
+                        height: 180,
+                        color: Colors.grey.shade300,
+                        child: Center(
+                          child: Text(
+                            "Hotel Image",
+                            style: AppWidget.headlinestyle(16),
+                          ),
+                        ),
+                      ),
+                    )
+                  : Image.asset(
+                      imagePath,
+                      width: 250,
+                      height: 180,
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) => Container(
+                        width: 250,
+                        height: 180,
+                        color: Colors.grey.shade300,
+                        child: Center(
+                          child: Text(
+                            "Hotel Image",
+                            style: AppWidget.headlinestyle(16),
+                          ),
+                        ),
+                      ),
+                    ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(12.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: AppWidget.headlinestyle(20).copyWith(fontWeight: FontWeight.bold),
                   ),
-                ),
+                  const SizedBox(height: 5),
+                  Text(
+                    price,
+                    style: AppWidget.headlinestyle(18).copyWith(color: Colors.redAccent),
+                  ),
+                  const SizedBox(height: 5),
+                  Row(
+                    children: [
+                      Icon(Icons.location_on, color: Colors.blue.shade400, size: 20),
+                      const SizedBox(width: 5),
+                      Text(
+                        location,
+                        style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppWidget.headlinestyle(20).copyWith(fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 5),
-                Text(
-                  price,
-                  style: AppWidget.headlinestyle(18).copyWith(color: Colors.redAccent),
-                ),
-                const SizedBox(height: 5),
-                Row(
-                  children: [
-                    Icon(Icons.location_on, color: Colors.blue.shade400, size: 20),
-                    const SizedBox(width: 5),
-                    Text(
-                      location,
-                      style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _buildDiscoverCard(String title, String location, String imagePath) {
-    return Container(
-      width: 150,
-      margin: const EdgeInsets.only(right: 15, bottom: 10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(15),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.3),
-            spreadRadius: 1,
-            blurRadius: 3,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          ClipRRect(
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
-            child: Image.asset(
-              imagePath,
-              width: 150,
-              height: 100,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) => Container(
-                width: 150,
-                height: 100,
-                color: Colors.grey.shade200,
-                child: Center(
-                  child: Icon(Icons.broken_image, color: Colors.blue.shade400),
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppWidget.headlinestyle(14.0).copyWith(fontWeight: FontWeight.bold),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                const SizedBox(height: 4),
-                Row(
-                  children: [
-                    Icon(Icons.pin_drop, size: 14, color: Colors.blue.shade400),
-                    const SizedBox(width: 4),
-                    Text(
-                      location,
-                      style: AppWidget.blueTextStyle(12.0),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  
 }
