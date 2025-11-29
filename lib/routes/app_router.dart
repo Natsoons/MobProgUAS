@@ -3,7 +3,7 @@ import 'package:mobprog_uas/pages/home.dart' as home_page hide Login;
 import 'package:mobprog_uas/pages/login.dart' as auth_login;
 import 'package:mobprog_uas/pages/signup.dart';
 import 'package:mobprog_uas/pages/profile.dart';
-import 'package:mobprog_uas/pages/detail_page_clean.dart';
+import 'package:mobprog_uas/pages/detail_page.dart';
 import 'package:mobprog_uas/pages/forgot_password.dart';
 import 'package:mobprog_uas/pages/hotels_list.dart';
 import 'package:mobprog_uas/pages/bookings.dart';
