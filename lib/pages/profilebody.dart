@@ -58,21 +58,7 @@ class Profilebody extends StatelessWidget {
                         color: Colors.white,
                       ),
                     );
-                  }),
-
-                  const SizedBox(height: 5.0),
-
-                  Consumer<AuthProvider>(builder: (context, auth, _) {
-                    final email = auth.user?.email ?? 'email@domain.com';
-                    return Text(
-                      email,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        color: Colors.white70,
-                        fontWeight: FontWeight.w100,
-                      ),
-                    );
-                  }),
+                  }),       
                 ],
               ),
             ],
