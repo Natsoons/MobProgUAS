@@ -1,21 +1,62 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:mobprog_uas/pages/booking.dart';
 import 'package:mobprog_uas/pages/review.dart';
+import 'package:mobprog_uas/services/db_helper.dart';
+import 'package:mobprog_uas/providers/auth_provider.dart';
 
-class DetailPage extends StatelessWidget {
+class DetailPage extends StatefulWidget {
   final Map<String, dynamic>? hotel;
   const DetailPage({super.key, this.hotel});
 
   @override
+  State<DetailPage> createState() => _DetailPageState();
+}
+
+class _DetailPageState extends State<DetailPage> {
+  final DBHelper _dbHelper = DBHelper();
+  double _currentRating = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRating();
+  }
+
+  Future<void> _loadRating() async {
+    final hotelId = widget.hotel?['name'] ?? 'default';
+    final avg = await _dbHelper.getAverageRating(hotelId);
+    if (mounted) {
+      setState(() {
+        _currentRating = avg;
+      });
+    }
+  }
+
+  String _formatCurrency(num value) {
+    String price = value.toInt().toString();
+    String result = '';
+    int count = 0;
+    for (int i = price.length - 1; i >= 0; i--) {
+      count++;
+      result = price[i] + result;
+      if (count % 3 == 0 && i > 0) {
+        result = '.$result';
+      }
+    }
+    return 'Rp $result';
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final h = hotel ?? {
+    final h = widget.hotel ?? {
       'name': 'Hotel Default',
       'price': 0,
-      'currency': 'USD',
+      'currency': 'Rp ',
       'city': 'Unknown',
       'image': null,
-      'rating': 0.0,
     };
+    final hotelId = h['name'] ?? 'default';
 
     return Scaffold(
       backgroundColor: Colors.white,
@@ -28,10 +69,21 @@ class DetailPage extends StatelessWidget {
                 SizedBox(
                   height: 300,
                   width: double.infinity,
-                  child: h['image'] != null && h['image'].toString().startsWith('http')
-                      ? Image.network(h['image'], fit: BoxFit.cover, width: double.infinity, height: 300)
+                  child: h['image'] != null &&
+                          h['image'].toString().startsWith('http')
+                      ? Image.network(
+                          h['image'],
+                          fit: BoxFit.cover,
+                          width: double.infinity,
+                          height: 300,
+                        )
                       : (h['image'] != null
-                          ? Image.asset(h['image'], fit: BoxFit.cover, width: double.infinity, height: 300)
+                          ? Image.asset(
+                              h['image'],
+                              fit: BoxFit.cover,
+                              width: double.infinity,
+                              height: 300,
+                            )
                           : Container(color: Colors.grey.shade200)),
                 ),
                 Positioned(
@@ -70,7 +122,7 @@ class DetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '${h['currency'] ?? ''}${h['price'] ?? ''}',
+                    _formatCurrency(h['price'] ?? 0),
                     style: const TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -116,8 +168,21 @@ class DetailPage extends StatelessWidget {
                   const SizedBox(height: 30),
                   SizedBox(
                     width: double.infinity,
-                      child: ElevatedButton(
+                    child: ElevatedButton(
                       onPressed: () {
+                        final auth =
+                            Provider.of<AuthProvider>(context, listen: false);
+                        if (!auth.isLoggedIn) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text("Silakan login untuk memesan hotel"),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          Navigator.pushNamed(context, '/login');
+                          return;
+                        }
+
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -144,13 +209,14 @@ class DetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 20),
                   GestureDetector(
-                    onTap: () {
-                      Navigator.push(
+                    onTap: () async {
+                      await Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ReviewPage(),
+                          builder: (context) => ReviewPage(hotelId: hotelId),
                         ),
                       );
+                      _loadRating();
                     },
                     child: Container(
                       width: double.infinity,
@@ -162,18 +228,18 @@ class DetailPage extends StatelessWidget {
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.star, color: Colors.amber, size: 20),
-                          SizedBox(width: 8),
+                        children: [
+                          const Icon(Icons.star, color: Colors.amber, size: 20),
+                          const SizedBox(width: 8),
                           Text(
-                            "See Reviews (4.8)",
-                            style: TextStyle(
+                            "See Reviews (${_currentRating.toStringAsFixed(1)})",
+                            style: const TextStyle(
                               color: Colors.blue,
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          Icon(
+                          const Icon(
                             Icons.arrow_forward_ios,
                             color: Colors.blue,
                             size: 16,
