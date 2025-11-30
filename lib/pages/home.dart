@@ -32,17 +32,6 @@ class AppWidget {
   }
 }
 
-class Login extends StatelessWidget {
-  const Login({super.key});
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text("Login")),
-      body: const Center(child: Text("Login Page")),
-    );
-  }
-}
-
 class Home extends StatefulWidget {
   const Home({super.key});
 
@@ -51,18 +40,23 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
-  final List<Map<String, String>> discoverPlaces = [
-    {"title": "Pantai Kuta", "location": "Bali", "image": "images/beach1.jpg"},
-    {"title": "Gunung Bromo", "location": "Malang", "image": "images/mountain1.jpg"},
-    {"title": "Candi Borobudur", "location": "Magelang", "image": "images/temple1.jpg"},
-  ];
-
   final TextEditingController _searchController = TextEditingController();
-  List<Map<String, dynamic>> filtered = hotels;
+  List<Map<String, dynamic>> filtered = [];
+
+  @override
+  void initState() {
+    super.initState();
+    filtered = hotels;
+  }
 
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
+    
+    if (filtered.isEmpty && _searchController.text.isEmpty) {
+       filtered = hotels;
+    }
+
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
@@ -183,6 +177,7 @@ class _HomeState extends State<Home> {
                 )
               ],
             ),
+            
             Padding(
               padding: const EdgeInsets.only(left: 20.0, top: 20),
               child: Text(
@@ -206,6 +201,7 @@ class _HomeState extends State<Home> {
                 children: hotels.take(10).map((h) => _buildHotelCardFromMap(h)).toList(),
               ),
             ),
+            
             Padding(
               padding: const EdgeInsets.only(left: 20.0, top: 20),
               child: Text(
@@ -215,7 +211,7 @@ class _HomeState extends State<Home> {
             ),
             const SizedBox(height: 20),
             SizedBox(
-              height: 180,
+              height: 320, 
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.only(left: 20),
@@ -234,6 +230,7 @@ class _HomeState extends State<Home> {
     final price = '${h['currency'] ?? ''}${h['price'] ?? ''}';
     final location = h['city'] ?? '';
     final imagePath = h['image'] ?? '';
+    
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, '/detail', arguments: h);
@@ -269,10 +266,7 @@ class _HomeState extends State<Home> {
                         height: 180,
                         color: Colors.grey.shade300,
                         child: Center(
-                          child: Text(
-                            "Hotel Image",
-                            style: AppWidget.headlinestyle(16),
-                          ),
+                          child: Icon(Icons.image_not_supported, color: Colors.grey),
                         ),
                       ),
                     )
@@ -286,10 +280,7 @@ class _HomeState extends State<Home> {
                         height: 180,
                         color: Colors.grey.shade300,
                         child: Center(
-                          child: Text(
-                            "Hotel Image",
-                            style: AppWidget.headlinestyle(16),
-                          ),
+                          child: Icon(Icons.image_not_supported, color: Colors.grey),
                         ),
                       ),
                     ),
@@ -302,6 +293,7 @@ class _HomeState extends State<Home> {
                   Text(
                     title,
                     style: AppWidget.headlinestyle(20).copyWith(fontWeight: FontWeight.bold),
+                    overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 5),
                   Text(
@@ -327,6 +319,4 @@ class _HomeState extends State<Home> {
       ),
     );
   }
-
-  
 }
