@@ -9,8 +9,17 @@ class PaymentPage extends StatefulWidget {
   final int guests;
   final String? checkin;
   final String? checkout;
+  final String guestName;
   
-  const PaymentPage({super.key, this.hotel, this.nights = 0, this.guests = 1, this.checkin, this.checkout});
+  const PaymentPage({
+    super.key, 
+    this.hotel, 
+    this.nights = 0, 
+    this.guests = 1, 
+    this.checkin, 
+    this.checkout,
+    required this.guestName,
+  });
 
   @override
   State<PaymentPage> createState() => _PaymentPageState();
@@ -53,6 +62,7 @@ class _PaymentPageState extends State<PaymentPage> {
                         Text(widget.hotel?['name'] ?? 'Hotel', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
                         const SizedBox(height: 5),
                         Text('${widget.nights} Night(s), ${widget.guests} Guests', style: const TextStyle(color: Colors.grey)),
+                        Text('Name: ${widget.guestName}', style: const TextStyle(color: Colors.black87, fontWeight: FontWeight.w500)), 
                         Text(
                           '${_formatPrice(pricePerNight)} x ${widget.nights} nights', 
                           style: TextStyle(color: Colors.grey.shade500, fontSize: 12)
@@ -185,6 +195,7 @@ class _PaymentPageState extends State<PaymentPage> {
                 final email = auth.user?.email ?? '';
                 final booking = {
                   'email': email,
+                  'guest_name': widget.guestName,
                   'hotel_name': widget.hotel?['name'] ?? '',
                   'hotel_id': widget.hotel?['id']?.toString() ?? '',
                   'checkin': widget.checkin ?? '',
@@ -210,7 +221,8 @@ class _PaymentPageState extends State<PaymentPage> {
   double _getPricePerNight() {
     var rawPrice = widget.hotel?['price'];
     if (rawPrice == null) return 0.0;
-    String cleanString = rawPrice.toString().replaceAll(RegExp(r'[^0-9.]'), '');    
+    
+    String cleanString = rawPrice.toString().replaceAll(RegExp(r'[^0-9]'), ''); 
     return double.tryParse(cleanString) ?? 0.0;
   }
 
@@ -218,8 +230,17 @@ class _PaymentPageState extends State<PaymentPage> {
     return _getPricePerNight() * widget.nights;
   }
 
-  String _formatPrice(double v) {
-    final symbol = widget.hotel?['currency'] ?? '\$';
-    return '$symbol${v.toStringAsFixed(2)}';
+  String _formatPrice(double value) {
+    String price = value.toInt().toString();
+    String result = '';
+    int count = 0;
+    for (int i = price.length - 1; i >= 0; i--) {
+      count++;
+      result = price[i] + result;
+      if (count % 3 == 0 && i > 0) {
+        result = '.$result';
+      }
+    }
+    return 'Rp $result';
   }
 }
