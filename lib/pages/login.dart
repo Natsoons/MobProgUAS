@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mobprog_uas/services/widget_support.dart';
+import 'package:provider/provider.dart';
+import 'package:mobprog_uas/providers/auth_provider.dart';
 
 // Halaman Login untuk pengguna
 class Login extends StatefulWidget {
@@ -90,9 +92,14 @@ class _LoginState extends State<Login> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  Text(
-                    "Lupa Password?",
-                    style: AppWidget.blueTextStyle(16.0).copyWith(fontWeight: FontWeight.w600),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.pushNamed(context, '/forgot');
+                    },
+                    child: Text(
+                      "Lupa Password?",
+                      style: AppWidget.blueTextStyle(16.0).copyWith(fontWeight: FontWeight.w600),
+                    ),
                   ),
                 ],
               ),
@@ -100,8 +107,22 @@ class _LoginState extends State<Login> {
 
               GestureDetector(
                 onTap: () {
-                 
-                  print("Tombol Login ditekan");
+                  final auth = Provider.of<AuthProvider>(context, listen: false);
+                  final email = useremailcontroller.text.trim();
+                  final pass = passwordcontroller.text;
+                  if (email.isEmpty || pass.isEmpty) {
+                    ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Email dan password harus diisi')));
+                    return;
+                  }
+                  auth.login(email, pass).then((ok) {
+                    if (ok) {
+                      Navigator.pushReplacementNamed(context, '/profile');
+                    } else {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Login gagal: periksa email/password')),
+                      );
+                    }
+                  });
                 },
                 child: Center(
                   child: Material(
@@ -133,8 +154,7 @@ class _LoginState extends State<Login> {
                   Text("Belum punya akun? ", style: AppWidget.headlinestyle(16.0)),
                   GestureDetector(
                     onTap: () {
-                     
-                      print("Navigasi ke Daftar");
+                      Navigator.pushNamed(context, '/signup');
                     },
                     child: Text(
                       "Daftar Sekarang",
