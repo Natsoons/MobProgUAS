@@ -11,7 +11,6 @@ class HotelBookingPage extends StatefulWidget {
 
 class _HotelBookingPageState extends State<HotelBookingPage> {
   final _nameController = TextEditingController();
-  final _emailController = TextEditingController();
   final _phoneController = TextEditingController();
   
   DateTime? _checkInDate;
@@ -119,8 +118,6 @@ class _HotelBookingPageState extends State<HotelBookingPage> {
               const SizedBox(height: 10),
               _buildTextField("Full Name", _nameController, Icons.person),
               const SizedBox(height: 15),
-              _buildTextField("Email Address", _emailController, Icons.email),
-              const SizedBox(height: 15),
               _buildTextField("Phone Number", _phoneController, Icons.phone, isNumber: true),
               const SizedBox(height: 40),
 
@@ -140,9 +137,27 @@ class _HotelBookingPageState extends State<HotelBookingPage> {
                       ));
                       return;
                     }
-                    if (_nameController.text.trim().isEmpty || _emailController.text.trim().isEmpty) {
+                    
+                    if (_nameController.text.trim().isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-                        content: Text('Please enter your name and email'),
+                        content: Text('Please enter your name'),
+                        backgroundColor: Colors.red,
+                      ));
+                      return;
+                    }
+
+                    String phone = _phoneController.text.trim();
+                    if (phone.isEmpty) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Please enter your phone number'),
+                        backgroundColor: Colors.red,
+                      ));
+                      return;
+                    }
+
+                    if (!RegExp(r'^[0-9]+$').hasMatch(phone) || phone.length < 10) {
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('Please enter a valid phone number (min 10 digits)'),
                         backgroundColor: Colors.red,
                       ));
                       return;
@@ -168,6 +183,7 @@ class _HotelBookingPageState extends State<HotelBookingPage> {
                         guests: _guestCount,
                         checkin: '${ci.year}-${ci.month}-${ci.day}',
                         checkout: '${co.year}-${co.month}-${co.day}',
+                        guestName: _nameController.text.trim(),
                       )),
                     );
                   },
@@ -208,7 +224,7 @@ class _HotelBookingPageState extends State<HotelBookingPage> {
   Widget _buildTextField(String label, TextEditingController controller, IconData icon, {bool isNumber = false}) {
     return TextField(
       controller: controller,
-      keyboardType: isNumber ? TextInputType.phone : TextInputType.text,
+      keyboardType: isNumber ? TextInputType.number : TextInputType.text,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon),
