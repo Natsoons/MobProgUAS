@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:mobprog_uas/model/users.dart';
@@ -19,9 +18,15 @@ class AuthProvider extends ChangeNotifier {
     if (existing != null) return false;
 
     final hashed = _hashPassword(password, email);
-    final id = await _db.insertUser({'name': name, 'email': email, 'password': hashed});
+    final id = await _db.insertUser({
+      'name': name, 
+      'email': email, 
+      'password': hashed,
+      'profile_image': null
+    });
+    
     if (id > 0) {
-      _user = User(name: name, email: email);
+      _user = User(name: name, email: email, profileImage: null);
       notifyListeners();
       return true;
     }
@@ -32,7 +37,7 @@ class AuthProvider extends ChangeNotifier {
     final hashed = _hashPassword(password, email);
     final row = await _db.getUserByEmailAndPassword(email, hashed);
     if (row != null) {
-      _user = User(name: row['name'] ?? '', email: row['email'] ?? '');
+      _user = User.fromMap(row);
       notifyListeners();
       return true;
     }
@@ -50,12 +55,22 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> updateProfile({required String name}) async {
+  Future<bool> updateProfile({required String name, String? imagePath}) async {
     if (_user == null) return false;
     final email = _user!.email;
-    final rows = await _db.updateUserByEmail(email, {'name': name});
+    
+    Map<String, dynamic> data = {'name': name};
+    if (imagePath != null) {
+      data['profile_image'] = imagePath;
+    }
+
+    final rows = await _db.updateUserByEmail(email, data);
     if (rows > 0) {
-      _user = User(name: name, email: email);
+      _user = User(
+        name: name, 
+        email: email, 
+        profileImage: imagePath ?? _user!.profileImage
+      );
       notifyListeners();
       return true;
     }
