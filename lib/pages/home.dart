@@ -70,7 +70,7 @@ class _HomeState extends State<Home> {
                     bottomRight: Radius.circular(30),
                   ),
                   child: Image.asset(
-                    "images/home.jpg",
+                    "images/home.png",
                     width: MediaQuery.of(context).size.width,
                     height: 250,
                     fit: BoxFit.cover,
