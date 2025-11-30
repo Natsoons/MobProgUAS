@@ -5,12 +5,29 @@ class BookingDetailPage extends StatelessWidget {
   final Map<String, dynamic>? booking;
   const BookingDetailPage({super.key, this.booking});
 
+  String _formatCurrency(num value) {
+    String price = value.toInt().toString();
+    String result = '';
+    int count = 0;
+    for (int i = price.length - 1; i >= 0; i--) {
+      count++;
+      result = price[i] + result;
+      if (count % 3 == 0 && i > 0) {
+        result = '.$result';
+      }
+    }
+    return 'Rp $result';
+  }
+
   @override
   Widget build(BuildContext context) {
     final b = booking ?? {};
     final hotelId = int.tryParse((b['hotel_id'] ?? '').toString());
-    final hotel = (hotelId != null) ? hotels.firstWhere((h) => h['id'] == hotelId, orElse: () => {}) : {};
+    final hotel = (hotelId != null)
+        ? hotels.firstWhere((h) => h['id'] == hotelId, orElse: () => {})
+        : {};
     final hotelImage = hotel['image'];
+    final total = b['total'] != null ? (b['total'] as num) : 0;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Detail Pesanan')),
@@ -28,19 +45,26 @@ class BookingDetailPage extends StatelessWidget {
                     : Image.asset(hotelImage, fit: BoxFit.cover),
               ),
             const SizedBox(height: 16),
-            Text(b['hotel_name'] ?? 'Hotel', style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+            Text(
+              b['hotel_name'] ?? 'Hotel',
+              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Text('Check-in: ${b['checkin'] ?? '-'}'),
             Text('Check-out: ${b['checkout'] ?? '-'}'),
             const SizedBox(height: 8),
             Text('Nights: ${b['nights'] ?? 0} • Guests: ${b['guests'] ?? 0}'),
             const SizedBox(height: 8),
-            Text('Total: \$${(b['total'] ?? 0).toString()}'),
+            Text('Total: ${_formatCurrency(total)}'),
             const SizedBox(height: 20),
-            const Text('Detail Tambahan', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const Text(
+              'Detail Tambahan',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
             Text('Booking ID: ${b['id'] ?? ''}'),
             Text('Email: ${b['email'] ?? ''}'),
+            Text('Nama Pemesan: ${b['guest_name'] ?? '-'}'),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,

@@ -1,12 +1,10 @@
-
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mobprog_uas/providers/auth_provider.dart';
 
 class Profilebody extends StatelessWidget {
-  const Profilebody({
-    super.key,
-  });
+  const Profilebody({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -14,11 +12,9 @@ class Profilebody extends StatelessWidget {
       width: double.infinity,
       child: Column(
         children: [
-        
           Stack(
             alignment: Alignment.center,
             children: [
-             
               Container(
                 height: 300,
                 width: double.infinity,
@@ -29,8 +25,6 @@ class Profilebody extends StatelessWidget {
                   ),
                 ),
               ),
-
-              
               Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -40,14 +34,25 @@ class Profilebody extends StatelessWidget {
                       shape: BoxShape.circle,
                       color: Colors.white,
                     ),
-                    child: CircleAvatar(
-                      backgroundImage: AssetImage('assets/ningning.jpg'),
-                      radius: 60.0,
+                    child: Consumer<AuthProvider>(
+                      builder: (context, auth, _) {
+                        final imagePath = auth.user?.profileImage;
+                        ImageProvider imgProvider;
+                        
+                        if (imagePath != null && File(imagePath).existsSync()) {
+                          imgProvider = FileImage(File(imagePath));
+                        } else {
+                          imgProvider = const AssetImage('assets/ningning.jpg');
+                        }
+
+                        return CircleAvatar(
+                          backgroundImage: imgProvider,
+                          radius: 60.0,
+                        );
+                      }
                     ),
                   ),
-
                   const SizedBox(height: 15.0),
-
                   Consumer<AuthProvider>(builder: (context, auth, _) {
                     final name = auth.user?.name ?? 'Nama Pengguna';
                     return Text(
@@ -58,15 +63,24 @@ class Profilebody extends StatelessWidget {
                         color: Colors.white,
                       ),
                     );
-                  }),       
+                  }),
+                  const SizedBox(height: 5.0),
+                  Consumer<AuthProvider>(builder: (context, auth, _) {
+                    final email = auth.user?.email ?? 'email@domain.com';
+                    return Text(
+                      email,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        color: Colors.white70,
+                        fontWeight: FontWeight.w100,
+                      ),
+                    );
+                  }),
                 ],
               ),
             ],
           ),
-
           const SizedBox(height: 30.0),
-
-        
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: SizedBox(
@@ -97,9 +111,7 @@ class Profilebody extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 15.0),
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: SizedBox(
@@ -130,10 +142,7 @@ class Profilebody extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 15.0),
-
-          
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: SizedBox(
@@ -164,10 +173,7 @@ class Profilebody extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 15.0),
-
-      
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: SizedBox(
@@ -200,7 +206,6 @@ class Profilebody extends StatelessWidget {
               ),
             ),
           ),
-
           const SizedBox(height: 30.0),
         ],
       ),

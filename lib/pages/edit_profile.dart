@@ -15,8 +15,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _nameController = TextEditingController();
   bool _saving = false;
+  bool _isPickerActive = false;
 
- 
   File? _selectedImage;
   final ImagePicker _picker = ImagePicker();
 
@@ -27,26 +27,43 @@ class _EditProfilePageState extends State<EditProfilePage> {
     _nameController.text = auth.user?.name ?? '';
   }
 
- 
   Future<void> _pickImage() async {
-    final XFile? pickedFile = await _picker.pickImage(source: ImageSource.gallery);
+    if (_isPickerActive) return;
 
-    if (pickedFile != null) {
+    setState(() {
+      _isPickerActive = true;
+    });
+
+    try {
+      final XFile? pickedFile = await _picker.pickImage(
+        source: ImageSource.gallery,
+        imageQuality: 50, 
+      );
+
+      if (pickedFile != null) {
+        setState(() {
+          _selectedImage = File(pickedFile.path);
+        });
+      }
+    } catch (e) {
+      debugPrint("Error picking image: $e");
+    } finally {
       setState(() {
-        _selectedImage = File(pickedFile.path);
+        _isPickerActive = false;
       });
     }
   }
 
-  
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     
     final auth = Provider.of<AuthProvider>(context, listen: false);
     
-  
-    final ok = await auth.updateProfile(name: _nameController.text.trim());
+    final ok = await auth.updateProfile(
+      name: _nameController.text.trim(),
+      imagePath: _selectedImage?.path
+    );
     
     setState(() => _saving = false);
     if (ok) {
@@ -61,6 +78,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    final auth = Provider.of<AuthProvider>(context, listen: false);
+    final currentImage = auth.user?.profileImage;
+
     return Scaffold(
       appBar: AppBar(title: const Text('Edit Profil')),
       body: SingleChildScrollView(
@@ -69,11 +89,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
           key: _formKey,
           child: Column(
             children: [
-             
               Center(
                 child: Stack(
                   children: [
-                
                     Container(
                       padding: const EdgeInsets.all(4), 
                       decoration: BoxDecoration(
@@ -86,22 +104,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       child: CircleAvatar(
                         radius: 60,
                         backgroundColor: Colors.grey[200],
-                   
-                        backgroundImage: _selectedImage != null
-                            ? FileImage(_selectedImage!) as ImageProvider
-                            : null,
-                     
-                        child: _selectedImage == null
-                            ? const Icon(Icons.person, size: 60, color: Colors.grey)
-                            : null,
+                        backgroundImage: _getProfileImage(currentImage),
                       ),
                     ),
-             
                     Positioned(
                       bottom: 0,
                       right: 0,
                       child: GestureDetector(
-                        onTap: _pickImage,
+                        onTap: _isPickerActive ? null : _pickImage,
                         child: Container(
                           height: 40,
                           width: 40,
@@ -110,21 +120,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             color: Colors.blue,
                             border: Border.all(color: Colors.white, width: 3),
                           ),
-                          child: const Icon(
-                            Icons.edit,
-                            color: Colors.white,
-                            size: 20,
-                          ),
+                          child: _isPickerActive 
+                            ? const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              )
+                            : const Icon(
+                                Icons.camera_alt,
+                                color: Colors.white,
+                                size: 20,
+                              ),
                         ),
                       ),
                     ),
                   ],
                 ),
               ),
-              
               const SizedBox(height: 30),
-              
-           
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -134,10 +146,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                 ),
                 validator: (v) => (v == null || v.trim().isEmpty) ? 'Nama tidak boleh kosong' : null,
               ),
-              
               const SizedBox(height: 20),
-              
-            
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -157,5 +166,20 @@ class _EditProfilePageState extends State<EditProfilePage> {
         ),
       ),
     );
+  }
+
+  ImageProvider _getProfileImage(String? dbImagePath) {
+    if (_selectedImage != null) {
+      return FileImage(_selectedImage!);
+    }
+    
+    if (dbImagePath != null && dbImagePath.isNotEmpty) {
+      final file = File(dbImagePath);
+      if (file.existsSync()) {
+        return FileImage(file);
+      }
+    }
+
+    return const AssetImage('assets/ningning.jpg');
   }
 }
