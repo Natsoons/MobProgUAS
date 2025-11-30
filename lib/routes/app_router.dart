@@ -8,7 +8,7 @@ import 'package:mobprog_uas/pages/forgot_password.dart';
 import 'package:mobprog_uas/pages/hotels_list.dart';
 import 'package:mobprog_uas/pages/bookings.dart';
 import 'package:mobprog_uas/pages/edit_profile.dart';
-import 'package:mobprog_uas/pages/wishlist.dart';
+import 'package:mobprog_uas/pages/histori.dart';
 import 'package:mobprog_uas/pages/booking_detail.dart';
 
 class AppRouter {
