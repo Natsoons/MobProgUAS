@@ -18,8 +18,8 @@ final List<Map<String, dynamic>> hotels = List.generate(50, (i) {
   return {
     'id': id,
     'name': 'Hotel ${id.toString().padLeft(2, '0')}',
-    'price': 10 + (id % 40),
-    'currency': 'USD',
+    'price': 300000 + (id * 25000),
+    'currency': 'Rp ',
     'city': cities[id % cities.length],
     'image': image,
     'rating': 3.5 + ((id % 5) * 0.3),

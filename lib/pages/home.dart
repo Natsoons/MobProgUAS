@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:mobprog_uas/data/hotels.dart';
@@ -43,18 +44,67 @@ class _HomeState extends State<Home> {
   final TextEditingController _searchController = TextEditingController();
   List<Map<String, dynamic>> filtered = [];
 
+  int _currentPage = 0;
+  final PageController _pageController = PageController(initialPage: 0);
+  Timer? _timer;
+
+  final List<String> _headerImages = [
+    "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=800&auto=format&fit=crop&q=60",
+    "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop&q=60",
+    "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=800&auto=format&fit=crop&q=60",
+    "https://images.unsplash.com/photo-1551882547-ff40c63fe5fa?w=800&auto=format&fit=crop&q=60",
+  ];
+
   @override
   void initState() {
     super.initState();
     filtered = hotels;
+
+    _timer = Timer.periodic(const Duration(seconds: 4), (Timer timer) {
+      if (_currentPage < _headerImages.length - 1) {
+        _currentPage++;
+      } else {
+        _currentPage = 0;
+      }
+
+      if (_pageController.hasClients) {
+        _pageController.animateToPage(
+          _currentPage,
+          duration: const Duration(milliseconds: 350),
+          curve: Curves.easeIn,
+        );
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    _timer?.cancel();
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  String _formatCurrency(num value) {
+    String price = value.toInt().toString();
+    String result = '';
+    int count = 0;
+    for (int i = price.length - 1; i >= 0; i--) {
+      count++;
+      result = price[i] + result;
+      if (count % 3 == 0 && i > 0) {
+        result = '.$result';
+      }
+    }
+    return 'Rp $result';
   }
 
   @override
   Widget build(BuildContext context) {
     final auth = Provider.of<AuthProvider>(context);
-    
+
     if (filtered.isEmpty && _searchController.text.isEmpty) {
-       filtered = hotels;
+      filtered = hotels;
     }
 
     return Scaffold(
@@ -69,21 +119,34 @@ class _HomeState extends State<Home> {
                     bottomLeft: Radius.circular(30),
                     bottomRight: Radius.circular(30),
                   ),
-                  child: Image.asset(
-                    "images/home.png",
+                  child: SizedBox(
                     width: MediaQuery.of(context).size.width,
                     height: 250,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      width: MediaQuery.of(context).size.width,
-                      height: 250,
-                      color: Colors.blue.shade100,
-                      child: Center(
-                        child: Text(
-                          "Header Image",
-                          style: AppWidget.headlinestyle(20),
-                        ),
-                      ),
+                    child: PageView.builder(
+                      controller: _pageController,
+                      itemCount: _headerImages.length,
+                      onPageChanged: (int page) {
+                        setState(() {
+                          _currentPage = page;
+                        });
+                      },
+                      itemBuilder: (context, index) {
+                        return Image.network(
+                          _headerImages[index],
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                                color: Colors.blue.shade100,
+                                child: const Center(
+                                  child: Icon(
+                                    Icons.image,
+                                    size: 50,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                        );
+                      },
                     ),
                   ),
                 ),
@@ -106,7 +169,10 @@ class _HomeState extends State<Home> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.location_on, color: Colors.white),
+                              const Icon(
+                                Icons.location_on,
+                                color: Colors.white,
+                              ),
                               const SizedBox(width: 10),
                               Text(
                                 "Indonesia, Jakarta",
@@ -123,17 +189,18 @@ class _HomeState extends State<Home> {
                               }
                             },
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 15, vertical: 8),
-                              decoration: BoxDecoration(
+                              padding: const EdgeInsets.all(8),
+                              decoration: const BoxDecoration(
                                 color: Colors.white,
-                                borderRadius: BorderRadius.circular(20),
+                                shape: BoxShape.circle,
                               ),
-                              child: Text(
-                                auth.isLoggedIn ? "Profile Akun" : "LOGIN",
-                                style: AppWidget.blueTextStyle(16).copyWith(fontWeight: FontWeight.bold),
+                              child: Icon(
+                                Icons.person,
+                                color: Colors.blue.shade800,
+                                size: 24,
                               ),
                             ),
-                          )
+                          ),
                         ],
                       ),
                       const SizedBox(height: 20),
@@ -154,8 +221,12 @@ class _HomeState extends State<Home> {
                             setState(() {
                               final q = v.toLowerCase();
                               filtered = hotels.where((h) {
-                                final name = (h['name'] ?? '').toString().toLowerCase();
-                                final city = (h['city'] ?? '').toString().toLowerCase();
+                                final name = (h['name'] ?? '')
+                                    .toString()
+                                    .toLowerCase();
+                                final city = (h['city'] ?? '')
+                                    .toString()
+                                    .toLowerCase();
                                 return name.contains(q) || city.contains(q);
                               }).toList();
                             });
@@ -167,17 +238,22 @@ class _HomeState extends State<Home> {
                               color: Colors.blue.shade400,
                             ),
                             hintText: "Search for hotel, city, etc",
-                            hintStyle: const TextStyle(color: Colors.grey, fontSize: 18),
-                            contentPadding: const EdgeInsets.symmetric(vertical: 15),
+                            hintStyle: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 18,
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              vertical: 15,
+                            ),
                           ),
                         ),
-                      )
+                      ),
                     ],
                   ),
-                )
+                ),
               ],
             ),
-            
+
             Padding(
               padding: const EdgeInsets.only(left: 20.0, top: 20),
               child: Text(
@@ -185,12 +261,23 @@ class _HomeState extends State<Home> {
                 style: AppWidget.headlinestyle(22),
               ),
             ),
-            Align(
-              alignment: Alignment.centerRight,
-              child: TextButton(
-                onPressed: () => Navigator.pushNamed(context, '/hotels'),
-                child: const Text('Lihat Semua'),
+
+            const SizedBox(height: 20),
+            SizedBox(
+              height: 320,
+              child: ListView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.only(left: 20),
+                children: hotels
+                    .take(10)
+                    .map((h) => _buildHotelCardFromMap(h))
+                    .toList(),
               ),
+            ),
+
+            Padding(
+              padding: const EdgeInsets.only(left: 20.0, top: 20),
+              child: Text("List Hotel", style: AppWidget.headlinestyle(22)),
             ),
             const SizedBox(height: 20),
             SizedBox(
@@ -198,24 +285,9 @@ class _HomeState extends State<Home> {
               child: ListView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.only(left: 20),
-                children: hotels.take(10).map((h) => _buildHotelCardFromMap(h)).toList(),
-              ),
-            ),
-            
-            Padding(
-              padding: const EdgeInsets.only(left: 20.0, top: 20),
-              child: Text(
-                "List Hotel",
-                style: AppWidget.headlinestyle(22),
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              height: 320, 
-              child: ListView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.only(left: 20),
-                children: (filtered.take(10).toList()).map((h) => _buildHotelCardFromMap(h)).toList(),
+                children: (filtered.take(10).toList())
+                    .map((h) => _buildHotelCardFromMap(h))
+                    .toList(),
               ),
             ),
             const SizedBox(height: 30),
@@ -227,10 +299,11 @@ class _HomeState extends State<Home> {
 
   Widget _buildHotelCardFromMap(Map<String, dynamic> h) {
     final title = h['name'] ?? '';
-    final price = '${h['currency'] ?? ''}${h['price'] ?? ''}';
+    final rawPrice = h['price'] ?? 0;
+    final price = _formatCurrency(rawPrice);
     final location = h['city'] ?? '';
     final imagePath = h['image'] ?? '';
-    
+
     return GestureDetector(
       onTap: () {
         Navigator.pushNamed(context, '/detail', arguments: h);
@@ -254,8 +327,11 @@ class _HomeState extends State<Home> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-              child: imagePath != null && imagePath.toString().startsWith('http')
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(20),
+              ),
+              child:
+                  imagePath != null && imagePath.toString().startsWith('http')
                   ? Image.network(
                       imagePath,
                       width: 250,
@@ -265,8 +341,11 @@ class _HomeState extends State<Home> {
                         width: 250,
                         height: 180,
                         color: Colors.grey.shade300,
-                        child: Center(
-                          child: Icon(Icons.image_not_supported, color: Colors.grey),
+                        child: const Center(
+                          child: Icon(
+                            Icons.image_not_supported,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                     )
@@ -279,8 +358,11 @@ class _HomeState extends State<Home> {
                         width: 250,
                         height: 180,
                         color: Colors.grey.shade300,
-                        child: Center(
-                          child: Icon(Icons.image_not_supported, color: Colors.grey),
+                        child: const Center(
+                          child: Icon(
+                            Icons.image_not_supported,
+                            color: Colors.grey,
+                          ),
                         ),
                       ),
                     ),
@@ -292,22 +374,33 @@ class _HomeState extends State<Home> {
                 children: [
                   Text(
                     title,
-                    style: AppWidget.headlinestyle(20).copyWith(fontWeight: FontWeight.bold),
+                    style: AppWidget.headlinestyle(
+                      20,
+                    ).copyWith(fontWeight: FontWeight.bold),
                     overflow: TextOverflow.ellipsis,
                   ),
                   const SizedBox(height: 5),
                   Text(
                     price,
-                    style: AppWidget.headlinestyle(18).copyWith(color: Colors.redAccent),
+                    style: AppWidget.headlinestyle(
+                      18,
+                    ).copyWith(color: Colors.redAccent),
                   ),
                   const SizedBox(height: 5),
                   Row(
                     children: [
-                      Icon(Icons.location_on, color: Colors.blue.shade400, size: 20),
+                      Icon(
+                        Icons.location_on,
+                        color: Colors.blue.shade400,
+                        size: 20,
+                      ),
                       const SizedBox(width: 5),
                       Text(
                         location,
-                        style: TextStyle(color: Colors.grey.shade600, fontSize: 16),
+                        style: TextStyle(
+                          color: Colors.grey.shade600,
+                          fontSize: 16,
+                        ),
                       ),
                     ],
                   ),
